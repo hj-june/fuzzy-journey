@@ -1,6 +1,28 @@
 #!/bin/bash
 
-# Add check for package requirements such as aws cli
+# Verify that AWS credentials are present in env
+if [[ -z ${AWS_DEFAULT_REGION+x} || (
+	  -z ${AWS_PROFILE+x} &&
+	      ( -z ${AWS_ACCESS_KEY_ID+x} || -z ${AWS_SECRET_ACCESS_KEY+x})
+      )]]; then
+
+    cat <<EOF >&2
+AWS credentials are not present in the environment. Please add them by either:
+  exporting AWS_PROFILE and AWS_DEFAULT_REGION (preferred), OR
+  exporting AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and AWS_DEFAULT_REGION
+EOF
+    exit 1
+fi
+
+# Verify that the AWS CLI executable can be found
+if [ ! "$(which aws)" ]; then
+cat <<EOF >&2
+The AWS CLI is NOT found, please install it using whatever means is appropriate for your environment, e.g.:
+  brew install awscli
+  sudo apt-get install awscli
+EOF
+    exit 1
+fi
 
 while getopts d:b: flag
 do
