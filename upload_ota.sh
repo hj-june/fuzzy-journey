@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Add check for package requirements such as aws cli
+
 while getopts d:b: flag
 do
     case "${flag}" in
@@ -37,7 +39,7 @@ do_magic() {
   changed_jota1="${device}-${build}"
   changed_jota2="${device}-${build}0000"
 
-  origin_jotc=$(find ./${build_name} -name "*systemPlus-ABRFP.jotc" -exec basename {} \;)
+  origin_jotc=$(find ./${build_name} -name "*systemPlus-*" -exec basename {} \;)
   changed_jotc1="${device}-${build}${build}.jotc"
 
   cp -v "./${build_name}/${origin_jota}" "./${build_name}/${changed_jota1}" || { echo "FAILED to make copy of ${origin_jota}"; exit 1; }
