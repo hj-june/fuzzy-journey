@@ -23,7 +23,7 @@ full_upload_path=""
 aws_creds=""
 
 download_build() {
-  aws s3 cp ${full_download_path} . && echo "Download successful: ${full_download_path}" || { echo "Download FAILED: ${full_download_path}"; exit 1; }
+  aws s3 cp ${full_download_path} . && { echo "Download successful: ${full_download_path}"; sync; } || { echo "Download FAILED: ${full_download_path}"; exit 1; }
 }
 
 upload_ota() {
@@ -36,8 +36,8 @@ do_magic() {
   sync
 
   origin_jota="app.enc.jota"
-  changed_jota1="${device}-${build}"
-  changed_jota2="${device}-${build}0000"
+  changed_jota1="${device}-${build}.jota"
+  changed_jota2="${device}-${build}0000.jota"
 
   origin_jotc=$(find ./${build_name} -name "*systemPlus-*" -exec basename {} \;)
   changed_jotc1="${device}-${build}${build}.jotc"
@@ -46,6 +46,7 @@ do_magic() {
   cp -v "./${build_name}/${origin_jota}" "./${build_name}/${changed_jota2}" || { echo "FAILED to make copy of ${origin_jota}"; exit 1; }
   cp -v "./${build_name}/${origin_jotc}" "./${build_name}/${changed_jotc1}" || { echo "FAILED to make copy of ${origin_jotc}"; exit 1; }
   sync
+  echo "File copy and rename successful!"
 }
 
 # debug print
