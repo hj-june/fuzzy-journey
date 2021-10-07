@@ -37,20 +37,26 @@ done
 build_name="${device}-${build}-master"
 build_zipfile="${build_name}.zip"
 
-s3_build_baseURL="s3://junebuilds/juneoslite"
-full_download_path="${s3_build_baseURL}/${build_name}/${build_zipfile}"
+s3_build_base_url="s3://junebuilds/juneoslite"
+full_download_path="${s3_build_base_url}/${build_name}/${build_zipfile}"
 
-s3_ota_baseURL=""
-full_upload_path=""
-aws_creds=""
+#s3_ota_base_url="s3://june-ota-server-prod/versions"
+s3_ota_base_url="s3://june-ota-server-walker-us-dev/versions"
+full_upload_path="${s3_ota_base_url}/${device}/"
 
 download_build() {
   aws s3 cp ${full_download_path} . && { echo "Download successful: ${full_download_path}"; sync; } || { echo "Download FAILED: ${full_download_path}"; exit 1; }
 }
 
 upload_ota() {
-  #aws s3 cp ${build_zipfile} ${full_upload_path} && echo "Upload successful: ${build_zipfile}" || { echo "Upload FAILED ${build_zipfile}"; exit 1; }
-  pass
+  local files="${changed_jota1}
+  ${changed_jota2}
+  ${changed_jotc1}
+  "
+
+  for i in ${files}; do
+    aws s3 cp "./${build_name}/${i}" ${full_upload_path} --profile walker-cloud && echo "Upload successful: ${i}" || { echo "Upload FAILED ${i}"; exit 1; }
+  done
 }
 
 do_magic() {
@@ -64,19 +70,13 @@ do_magic() {
   origin_jotc=$(find ./${build_name} -name "*systemPlus-*" -exec basename {} \;)
   changed_jotc1="${device}-${build}${build}.jotc"
 
-  cp -v "./${build_name}/${origin_jota}" "./${build_name}/${changed_jota1}" || { echo "FAILED to make copy of ${origin_jota}"; exit 1; }
-  cp -v "./${build_name}/${origin_jota}" "./${build_name}/${changed_jota2}" || { echo "FAILED to make copy of ${origin_jota}"; exit 1; }
-  cp -v "./${build_name}/${origin_jotc}" "./${build_name}/${changed_jotc1}" || { echo "FAILED to make copy of ${origin_jotc}"; exit 1; }
+  cp -v "./${build_name}/${origin_jota}" "./${build_name}/${changed_jota1}" || { echo "FAILED to copy: ${origin_jota}"; exit 1; }
+  cp -v "./${build_name}/${origin_jota}" "./${build_name}/${changed_jota2}" || { echo "FAILED to copy: ${origin_jota}"; exit 1; }
+  cp -v "./${build_name}/${origin_jotc}" "./${build_name}/${changed_jotc1}" || { echo "FAILED to copy: ${origin_jotc}"; exit 1; }
   sync
   echo "File copy and rename successful!"
 }
 
-# debug print
-echo "device is : $device"
-echo "build is : $build"
-echo "full build name is: ${build_name}"
-echo "full zip file is: ${build_zipfile}"
-
-#download_build
-#upload_ota
+download_build
 do_magic
+upload_ota
