@@ -1,4 +1,6 @@
 #!/bin/bash
+# upload-ota.sh - bash script to download build files from build s3 (junelife) and upload to OTA s3 (walker-cloud)
+# Usage: ./upload-ota.sh -d <galaxy device name> -b <jenkins build number>
 
 # Verify that AWS credentials are present in env
 if [[ -z ${AWS_DEFAULT_REGION+x} || (
@@ -24,6 +26,11 @@ EOF
     exit 1
 fi
 
+## Argument check
+if [ $# -eq 0 ]; then
+    echo -e "\nUsage: ./${0##*/} -d [galaxy device name] -b [jenkins build number]\n" && exit 1
+fi
+
 while getopts d:b: flag
 do
     case "${flag}" in
@@ -40,8 +47,8 @@ build_zipfile="${build_name}.zip"
 s3_build_base_url="s3://junebuilds/juneoslite"
 full_download_path="${s3_build_base_url}/${build_name}/${build_zipfile}"
 
-#s3_ota_base_url="s3://june-ota-server-prod/versions"
-s3_ota_base_url="s3://june-ota-server-walker-us-dev/versions"
+s3_ota_base_url="s3://june-ota-server-prod/versions"
+#s3_ota_base_url="s3://june-ota-server-walker-us-dev/versions"
 full_upload_path="${s3_ota_base_url}/${device}/"
 
 download_build() {
@@ -49,9 +56,9 @@ download_build() {
 }
 
 upload_ota() {
-  local files="${changed_jota1}
-  ${changed_jota2}
-  ${changed_jotc1}
+  local files="${new_jota1}
+  ${new_jota2}
+  ${new_jotc}
   "
 
   for i in ${files}; do
@@ -64,15 +71,15 @@ do_magic() {
   sync
 
   origin_jota="app.enc.jota"
-  changed_jota1="${device}-${build}.jota"
-  changed_jota2="${device}-${build}0000.jota"
+  new_jota1="${device}-${build}.jota"
+  new_jota2="${device}-${build}0000.jota"
 
   origin_jotc=$(find ./${build_name} -name "*systemPlus-*" -exec basename {} \;)
-  changed_jotc1="${device}-${build}${build}.jotc"
+  new_jotc="${device}-${build}${build}.jotc"
 
-  cp -v "./${build_name}/${origin_jota}" "./${build_name}/${changed_jota1}" || { echo "FAILED to copy: ${origin_jota}"; exit 1; }
-  cp -v "./${build_name}/${origin_jota}" "./${build_name}/${changed_jota2}" || { echo "FAILED to copy: ${origin_jota}"; exit 1; }
-  cp -v "./${build_name}/${origin_jotc}" "./${build_name}/${changed_jotc1}" || { echo "FAILED to copy: ${origin_jotc}"; exit 1; }
+  cp -v "./${build_name}/${origin_jota}" "./${build_name}/${new_jota1}" || { echo "FAILED to copy: ${origin_jota}"; exit 1; }
+  cp -v "./${build_name}/${origin_jota}" "./${build_name}/${new_jota2}" || { echo "FAILED to copy: ${origin_jota}"; exit 1; }
+  cp -v "./${build_name}/${origin_jotc}" "./${build_name}/${new_jotc}" || { echo "FAILED to copy: ${origin_jotc}"; exit 1; }
   sync
   echo "File copy and rename successful!"
 }
