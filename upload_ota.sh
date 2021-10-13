@@ -5,7 +5,7 @@
 # Verify that AWS credentials are present in env
 if [[ -z ${AWS_DEFAULT_REGION+x} || (
         -z ${AWS_PROFILE+x} &&
-	      ( -z ${AWS_ACCESS_KEY_ID+x} || -z ${AWS_SECRET_ACCESS_KEY+x})
+            ( -z ${AWS_ACCESS_KEY_ID+x} || -z ${AWS_SECRET_ACCESS_KEY+x})
       )]]; then
 
     cat <<EOF >&2
